@@ -2,7 +2,38 @@ import { open, readdir, readFile } from "node:fs/promises";
 import http from "node:http";
 
 const server = http.createServer(async (req, res) => {
-    if(req.url=="/favicon.ico") return res.end("no favicon found")
+  if (req.url == "/favicon.ico") return res.end("no favicon found");
+
+  if (req.url.includes("preview")) {
+    console.log("in previe");
+    console.log(req.url.split("/").slice(1));
+    console.log("./storage" + req.url.replace("/preview", ""));
+    const path = "./storage" + req.url.replace("/preview", "");
+    const fileHandle = await open(path);
+    const readStream = fileHandle.createReadStream();
+    readStream.pipe(res);
+    readStream.on("end", () => {
+      fileHandle.close();
+    });
+    return;
+  }
+  if (req.url.includes("download")) {
+    console.log(req.url.split("/").slice(1));
+    console.log("./storage" + req.url.replace("/download", ""));
+    const path = "./storage" + req.url.replace("/download", "");
+    const fileHandle = await open(path);
+    const readStream = fileHandle.createReadStream({highWaterMark:1})
+    const stats = await fileHandle.stat();
+    res.setHeader("Content-Disposition", "attachment");
+    res.setHeader("Content-Length", stats.size);
+     readStream.pipe(res)
+    readStream.on("end",()=>{
+        fileHandle.close()
+    })
+
+    return;
+  }
+
   try {
     const htmlFile = await readFile("./index.html", "utf-8");
     console.log(req.url);
@@ -48,7 +79,7 @@ const server = http.createServer(async (req, res) => {
         } else {
           console.log("in else`");
           const readStream = filehandle.createReadStream({
-            highWaterMark: 32,
+            highWaterMark: 1,
           });
 
           //   res.setHeader(
@@ -69,9 +100,11 @@ const server = http.createServer(async (req, res) => {
       let dynamicHtml = "";
 
       files.forEach((item) => {
-        dynamicHtml += `<li><a href="/${encodeURIComponent(
-          item
-        )}">${item}</a></li>`;
+        dynamicHtml += `<div><a href="/${encodeURIComponent(item)}">${item}</a>
+        <a style="background-color: aqua; margin:10px" href="/${item}/preview">preview</a>
+        <a style="background-color: aqua;" href="/${item}/download">download</a>
+        <br>
+        </div>`;
       });
 
       res.statusCode = 200;
