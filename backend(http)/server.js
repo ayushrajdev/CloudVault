@@ -2,7 +2,13 @@ import { open, readdir, readFile } from "node:fs/promises";
 import http from "node:http";
 
 const server = http.createServer(async (req, res) => {
+  res.setHeader("Access-Control-Allow-Headers", "*");
   if (req.url == "/favicon.ico") return res.end("no favicon found");
+  req.on("data", (chunk) => console.log(chunk.toString("utf-8")));
+  req.on("end", () => {
+    // res.end(JSON.stringify(["done"]));
+    return;
+  });
 
   if (req.url.includes("preview")) {
     console.log("in previe");
@@ -22,14 +28,14 @@ const server = http.createServer(async (req, res) => {
     console.log("./storage" + req.url.replace("/download", ""));
     const path = "./storage" + req.url.replace("/download", "");
     const fileHandle = await open(path);
-    const readStream = fileHandle.createReadStream({highWaterMark:1})
+    const readStream = fileHandle.createReadStream({ highWaterMark: 1 });
     const stats = await fileHandle.stat();
     res.setHeader("Content-Disposition", "attachment");
     res.setHeader("Content-Length", stats.size);
-     readStream.pipe(res)
-    readStream.on("end",()=>{
-        fileHandle.close()
-    })
+    readStream.pipe(res);
+    readStream.on("end", () => {
+      fileHandle.close();
+    });
 
     return;
   }
@@ -49,6 +55,11 @@ const server = http.createServer(async (req, res) => {
     const files = await readdir("./storage");
 
     // If file is clicked
+
+    res.setHeader("Content-Type", "application/json");
+    res.end(JSON.stringify(files));
+
+    return;
     if (
       (requestedFile && files.includes(requestedFile)) ||
       files.some((letter) => requestedFile.includes(letter))
