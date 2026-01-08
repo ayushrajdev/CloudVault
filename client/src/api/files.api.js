@@ -1,15 +1,17 @@
-// import axiosInstance from "./axiosInstance";
+import axiosInstance from "./axiosInstance";
 
-// const FilesApi = {
-// }
+const FilesApi = {
+}
 
 
-// export function getFilesNamesApi(path) {
-//     return axiosInstance.get(path)
-// }
-// // export function sendFileToServerApi(file) {
-// //     return axiosInstance.post("" , file)
-// // }
+export function getFilesNamesApi(path) {
+    return axiosInstance.get(path)
+}
+export function sendFileToServerApi(file) {
+    return axiosInstance.post("" , file,{headers:{
+        fileName:file.path
+    }})
+}
 
 
 // export const sendFileToServerApi = (file, onProgress) => {
@@ -27,26 +29,3 @@
 //     },
 //   });
 // };
-
-
-
-
-
-import axiosInstance from "./axiosInstance";
-
-export const getFilesNamesApi = () => {
-  return axiosInstance.get("/files");
-};
-
-export const sendFileToServerApi = (file, onProgress) => {
-  const formData = new FormData();
-  formData.append("file", file);
-
-  return axiosInstance.post("/upload", formData, {
-    onUploadProgress: (event) => {
-      if (!event.total) return;
-      const percent = Math.round((event.loaded * 100) / event.total);
-      onProgress(percent);
-    },
-  });
-};

@@ -3,13 +3,19 @@ import http from "node:http";
 
 const server = http.createServer(async (req, res) => {
   res.setHeader("Access-Control-Allow-Headers", "*");
+  console.log(req.headers.filename);
+  const uploadFileHandle = await open(
+    "./storage/" + req.headers.filename,
+    "w+"
+  );
+  const uploadWriteStream = uploadFileHandle.createWriteStream();
   if (req.url == "/favicon.ico") return res.end("no favicon found");
-  req.on("data", (chunk) => console.log(chunk.toString("utf-8")));
+//   req.on("data", (chunk) => );
   req.on("end", () => {
     // res.end(JSON.stringify(["done"]));
     return;
   });
-
+  await req.pipe(uploadWriteStream);
   if (req.url.includes("preview")) {
     console.log("in previe");
     console.log(req.url.split("/").slice(1));
@@ -42,7 +48,7 @@ const server = http.createServer(async (req, res) => {
 
   try {
     const htmlFile = await readFile("./index.html", "utf-8");
-    console.log(req.url);
+    // console.log(req.url);
 
     const url = new URL(req.url, `http://${req.headers.host}`);
 
