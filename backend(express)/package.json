@@ -1,0 +1,10 @@
+{
+  "dependencies": {
+    "@types/node": "^25.0.6",
+    "express": "^5.2.1"
+  },
+  "scripts": {
+    "dev": "node --watch server.js"
+  },
+  "type": "module"
+}

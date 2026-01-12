@@ -1,18 +1,17 @@
 import React, { useRef } from "react";
 import { useEffect } from "react";
 import { useState } from "react";
-import { getFilesNamesApi,  } from "../../api/files.api";
-import { Link } from "react-router-dom";
+import { getFilesNamesApi } from "../../api/files.api";
+import FIleCard from "./components/FIleCard";
 
 const ShowFiles = () => {
+  const URL = "http://localhost:3000";
   const [data, setData] = useState([]);
   const [remainingTime, setRemainingTime] = useState(null);
-
   const [currentFIle, setCurrentFIle] = useState(null);
   const [uploading, setUploading] = useState(false);
   const [progress, setProgress] = useState(0);
   const inputRef = useRef("");
-
 
   const formatTime = (sec) => {
     if (sec < 60) return `${sec}s`;
@@ -20,7 +19,6 @@ const ShowFiles = () => {
     const s = sec % 60;
     return `${m}m ${s}s`;
   };
-
 
   useEffect(() => {
     if (uploading) return;
@@ -30,45 +28,52 @@ const ShowFiles = () => {
     })();
   }, [uploading]);
 
-  console.log(data);
+  const handleDelete = async (file) => {
+    const res = await fetch(URL, {
+      method: "DELETE",
+      body: file,
+    });
+    const data = await res.text();
+    console.log(data);
+  };
 
   const handleFile = async (e) => {
     const file = e.target.files[0];
     setCurrentFIle(file);
   };
-//   const handleSubmit = async (e) => {
-//     e.preventDefault();
-//     // const response = await sendFileToServerApi(currentFIle);
-//     try {
-//       setUploading(true);
-//       //   const response = await fetch("http://localhost:3000/", {
-//       //     body: currentFIle,
-//       //     method: "POST",
-//       //     headers: {
-//       //       filename: currentFIle.name,
-//       //     },
-//       //   });
-//       const xhr = new XMLHttpRequest();
-//       xhr.open("POST", "http://localhost:3000", true);
-//       xhr.setRequestHeader("filename", currentFIle.name);
-//       xhr.upload.addEventListener("progress", (e) => {
-//         console.log(e);
-//         setProgress(Math.floor((e.loaded / e.total) * 100));
-//       });
-//       xhr.addEventListener("load", () => {
-//         setProgress(0);
-//         setCurrentFIle(null);
-//         setUploading(false);
-//         inputRef.current.value = "";
-//       });
-//       xhr.send(currentFIle);
-//     } catch (error) {
-//       console.log(error.message);
-//     }
-//   };
-  console.log(progress);
+  //   const handleSubmit = async (e) => {
+  //     e.preventDefault();
+  //     // const response = await sendFileToServerApi(currentFIle);
+  //     try {
+  //       setUploading(true);
+  //       //   const response = await fetch("http://localhost:3000/", {
+  //       //     body: currentFIle,
+  //       //     method: "POST",
+  //       //     headers: {
+  //       //       filename: currentFIle.name,
+  //       //     },
+  //       //   });
+  //       const xhr = new XMLHttpRequest();
+  //       xhr.open("POST", "http://localhost:3000", true);
+  //       xhr.setRequestHeader("filename", currentFIle.name);
+  //       xhr.upload.addEventListener("progress", (e) => {
+  //         console.log(e);
+  //         setProgress(Math.floor((e.loaded / e.total) * 100));
+  //       });
+  //       xhr.addEventListener("load", () => {
+  //         setProgress(0);
+  //         setCurrentFIle(null);
+  //         setUploading(false);
+  //         inputRef.current.value = "";
+  //       });
+  //       xhr.send(currentFIle);
+  //     } catch (error) {
+  //       console.log(error.message);
+  //     }
+  //   };
 
   const handleSubmit = (e) => {
+    ``;
     e.preventDefault();
     if (!currentFIle) return;
 
@@ -82,7 +87,11 @@ const ShowFiles = () => {
     const formData = new FormData();
     formData.append("file", currentFIle);
 
-    xhr.open("POST", "http://localhost:3000/upload", true);
+    xhr.open(
+      "POST",
+      URL + "/upload"
+      //   true
+    );
 
     xhr.upload.onprogress = (e) => {
       if (!e.lengthComputable) return;
@@ -110,37 +119,43 @@ const ShowFiles = () => {
       setUploading(false);
       setRemainingTime(null);
     };
+    xhr.setRequestHeader("filename", currentFIle.name);
 
     xhr.send(formData);
   };
+  console.log(data);
 
   return (
     <div>
-      {data.map((item) => (
+      {data?.map((item) => (
         <div className="bg-black text-white my-4 rounded-3xl p-4 w-4/5 mx-auto  ">
           <p className="text-red-800 text-2xl">{item}</p>
           <div className="my-2">
-            <Link
+            <a
               to={"/hello.txt"}
               className="bg-green-500 p-1 rounded-2xl px-2 mr-4 "
             >
               download
-            </Link>
-            <Link className="bg-purple-500 p-1 rounded-2xl px-2 mr-4 ">
+            </a>
+            <a
+              href={`/${item}`}
+              className="bg-purple-500 p-1 rounded-2xl px-2 mr-4 "
+            >
               Preview
-            </Link>
-            <Link className="bg-red-500 p-1 rounded-2xl px-2 mr-4 ">
+            </a>
+            <a
+              onClick={() => handleDelete(item)}
+              className="bg-red-500 p-1 rounded-2xl px-2 mr-4 "
+            >
               Delete
-            </Link>
-            <Link className="bg-emerald-500 p-1 rounded-2xl px-2 mr-4 ">
-              Rename
-            </Link>
+            </a>
+            <a className="bg-emerald-500 p-1 rounded-2xl px-2 mr-4 ">Rename</a>
           </div>
         </div>
       ))}
       <div className="bg-amber-400 w-4/5 mx-auto rounded-2xl p-8">
         <form
-          action="http://localhost:3000/"
+          //   action="http://localhost:3000/"
           method="POST"
           encType="multipart/form-data"
           onSubmit={handleSubmit}

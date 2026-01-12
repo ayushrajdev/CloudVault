@@ -1,21 +1,51 @@
-import { open, readdir, readFile } from "node:fs/promises";
+import { open, readdir, readFile, rm } from "node:fs/promises";
 import http from "node:http";
 
 const server = http.createServer(async (req, res) => {
+  console.log(req.url + "    ...................................");
   res.setHeader("Access-Control-Allow-Headers", "*");
-  console.log(req.headers.filename);
-  const uploadFileHandle = await open(
-    "./storage/" + req.headers.filename,
-    "w+"
-  );
-  const uploadWriteStream = uploadFileHandle.createWriteStream();
+
   if (req.url == "/favicon.ico") return res.end("no favicon found");
-//   req.on("data", (chunk) => );
-  req.on("end", () => {
-    // res.end(JSON.stringify(["done"]));
+
+  if (req.method === "DELETE") {
+    req.on("data", async (chunk) => {
+      const fileName = chunk.toString();
+      console.log(fileName);
+      await rm(`./storage/${fileName}`);
+    });
+    req.on("end", () => {
+      res.end("file deleted");
+    });
     return;
-  });
-  await req.pipe(uploadWriteStream);
+  }
+  if (req.url === "/upload") {
+    console.log(req.headers.filename);
+    console.log("uploading>>>>>>>>>");
+    const uploadFileHandle = await open(
+      "./storage/" + req.headers.filename,
+      "w+"
+    );
+
+    const uploadWriteStream = uploadFileHandle.createWriteStream();
+    //   req.on("data", (chunk) => );
+    req.on("end", () => {
+      console.log("wow3");
+      res.end(JSON.stringify(["done"]));
+      uploadFileHandle.close();
+      //   return;
+    });
+    // req.on("data",(chunk)=>{
+    //     console.log(chunk.toString());
+    // })
+    console.log("wow");
+    req.pipe(uploadWriteStream);
+    console.log("wow2");
+    return;
+  }
+  console.log(
+    "after upload..................................................."
+  );
+
   if (req.url.includes("preview")) {
     console.log("in previe");
     console.log(req.url.split("/").slice(1));
