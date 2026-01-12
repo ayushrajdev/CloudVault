@@ -34,7 +34,7 @@
 // };
 import path from "path";
 import { fileURLToPath } from "url";
-import { rename, rm } from "fs/promises";
+import { open, rename, rm } from "fs/promises";
 
 // ESM replacement for __dirname
 const __filename = fileURLToPath(import.meta.url);
@@ -48,10 +48,7 @@ export const previewFile = (req, res) => {
   const { fileName } = req.params;
 
   if (req.query.action === "download") {
-    res.setHeader(
-      "Content-Disposition",
-      `attachment; filename="${fileName}"`
-    );
+    res.setHeader("Content-Disposition", `attachment; filename="${fileName}"`);
   }
 
   const filePath = path.join(STORAGE_PATH, fileName);
@@ -77,7 +74,7 @@ export const renameFile = async (req, res) => {
     res.json({
       success: true,
       oldFileName,
-      newFileName
+      newFileName,
     });
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -95,4 +92,14 @@ export const deleteFile = async (req, res) => {
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
+};
+
+export const uploadFile = async (req, res) => {
+  const { filename: fileName } = req.headers;
+  const writeFileHandle = await open(fileName, "w+");
+  const ws = writeFileHandle.createWriteStream();
+  req.pipe(ws);
+  req.on("end", () => {
+      res.end("wow");
+});
 };
